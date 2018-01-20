@@ -25,7 +25,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 
 /**
@@ -46,6 +47,7 @@ public class EditarUsuari extends Fragment implements View.OnClickListener {
     private Button guardar, eliminar;
     private EditText text_nombre, text_apellidos, text_direccion;
     private FirebaseAuth mAuth;
+    private StorageReference storageReference;
 
 
     // TODO: Rename and change types of parameters
@@ -101,6 +103,8 @@ public class EditarUsuari extends Fragment implements View.OnClickListener {
 
         guardar.setOnClickListener(this);
         eliminar.setOnClickListener(this);
+
+
         return v;
     }
 
@@ -184,6 +188,7 @@ public class EditarUsuari extends Fragment implements View.OnClickListener {
                 adBuilder1.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+
                         Query q = bbdd.orderByChild("usuario").equalTo(u.getUsuario());
                         q.addListenerForSingleValueEvent(new ValueEventListener() {
 
@@ -207,6 +212,8 @@ public class EditarUsuari extends Fragment implements View.OnClickListener {
                                             String clave = datasnapshot.getKey();
                                             DatabaseReference ref = bbddProductos.child(clave);
                                             ref.removeValue();
+                                            storageReference = FirebaseStorage.getInstance().getReference(MainActivity.usuarioSesion.getUsuario()+"/"+clave);
+                                            storageReference.delete();
                                         }
                                     }
 
