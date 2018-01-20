@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Actividad5a</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string-array name="spCategoria">
+        <item>Tecnologia</item>
+        <item>Coches</item>
+        <item>Hogar</item>
+    </string-array>
+</resources>
