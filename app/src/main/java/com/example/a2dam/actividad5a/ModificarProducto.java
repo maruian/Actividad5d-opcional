@@ -5,10 +5,12 @@ import com.example.a2dam.actividad5a.model.Producto;
 import com.example.a2dam.actividad5a.model.Usuario;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -169,7 +171,23 @@ public class ModificarProducto extends Fragment implements View.OnClickListener 
                 guardarProducto();
                 break;
             case R.id.eliminar:
-                eliminarProducto();
+                AlertDialog.Builder adBuilder = new AlertDialog.Builder(getContext());
+                adBuilder.setMessage("Estas a punto de eliminar este producto. ¿Seguro que quieres continuar?");
+                adBuilder.setTitle("Advertencia!");
+                adBuilder.setPositiveButton("Continuar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        eliminarProducto();
+                    }
+                });
+                adBuilder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                AlertDialog alertDialog = adBuilder.create();
+                alertDialog.show();
                 break;
             case R.id.btnCambiarImagen:
                 Intent intent = new Intent(Intent.ACTION_PICK);
@@ -240,6 +258,8 @@ public class ModificarProducto extends Fragment implements View.OnClickListener 
     }
 
     private void eliminarProducto() {
+        StorageReference filepath = storageReference.child(MainActivity.usuarioSesion.getUsuario()+"/"+p.getKey());
+        filepath.delete();
         dbProductos.removeValue();
         dbProductosXUsuario.removeValue();
         dbProductosXCategoria.removeValue();
