@@ -60,6 +60,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Precio ..."/>
+    <Button
+        android:id="@+id/btnCambiarImagen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cambiar imagen"/>
 
     <LinearLayout
         android:layout_width="wrap_content"

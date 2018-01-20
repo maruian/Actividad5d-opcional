@@ -5,6 +5,7 @@ import com.example.a2dam.actividad5a.model.Producto;
 import com.example.a2dam.actividad5a.model.Usuario;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,9 +27,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.app.Activity.RESULT_OK;
 
 
 /**
@@ -45,9 +52,12 @@ public class ModificarProducto extends Fragment implements View.OnClickListener 
     private static final String CLAVE = "PRODUCTO";
 
 
-    private Button guardar, eliminar;
+    private Button guardar, eliminar, cambiarImagen;
     private Spinner spinner_categoria;
     private EditText text_nombre, text_descripcion, text_precio;
+
+    private StorageReference storageReference;
+    private static final int GALLERY_INTENT = 2;
 
     //Definim les referencies a la base de dades
     DatabaseReference dbProductos;
@@ -96,6 +106,7 @@ public class ModificarProducto extends Fragment implements View.OnClickListener 
         text_descripcion = v.findViewById(R.id.descripcionProducto);
         text_precio = v.findViewById(R.id.precioProducto);
         spinner_categoria = v.findViewById(R.id.categoriaProducto);
+        cambiarImagen = v.findViewById(R.id.btnCambiarImagen);
 
         text_nombre.setText(p.getNombre());
         text_descripcion.setText(p.getDescripcion());
@@ -113,8 +124,11 @@ public class ModificarProducto extends Fragment implements View.OnClickListener 
         guardar = v.findViewById(R.id.guardar);
         eliminar = v.findViewById(R.id.eliminar);
 
+        cambiarImagen.setOnClickListener(this);
         guardar.setOnClickListener(this);
         eliminar.setOnClickListener(this);
+
+        storageReference = FirebaseStorage.getInstance().getReference();
 
         //Instanciem les referencies a la base de dades
         dbProductos = FirebaseDatabase.getInstance().getReference("Productos/"+p.getKey());
@@ -157,11 +171,30 @@ public class ModificarProducto extends Fragment implements View.OnClickListener 
             case R.id.eliminar:
                 eliminarProducto();
                 break;
+            case R.id.btnCambiarImagen:
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent,GALLERY_INTENT);
+                break;
             default:
                 break;
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GALLERY_INTENT && resultCode == RESULT_OK){
+            Uri uri = data.getData();
+            final StorageReference filepath = storageReference.child(MainActivity.usuarioSesion.getUsuario()+"/"+p.getKey());
+            filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Toast.makeText(getContext(),"Imagen subida",Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
 
     /**
      * This interface must be implemented by activities that contain this

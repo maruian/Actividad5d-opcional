@@ -1,8 +1,10 @@
 package com.example.a2dam.actividad5a;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -14,9 +16,16 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.a2dam.actividad5a.model.Producto;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import static android.app.Activity.RESULT_OK;
 
 
 /**
@@ -33,9 +42,15 @@ public class AltaProducto extends Fragment implements View.OnClickListener{
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    private Button guardar;
+    String claveProducto;
+    private Button guardar, subirImagen;
+    private StorageReference storageReference;
     private EditText text_nombre, text_descripcion, text_precio;
     private Spinner spCategoria;
+    private static final int GALLERY_INTENT = 2;
+    DatabaseReference databaseReferenceProductos;
+    DatabaseReference databaseReferenceProductosXUsuario;
+    DatabaseReference databaseReferenceProductosXCategoria;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -85,8 +100,18 @@ public class AltaProducto extends Fragment implements View.OnClickListener{
         spCategoria = v.findViewById(R.id.spCategoria);
         text_precio = v.findViewById(R.id.etPrecio);
         guardar = v.findViewById(R.id.guardar);
+        subirImagen = v.findViewById(R.id.btGuardarImagen);
 
+        subirImagen.setOnClickListener(this);
         guardar.setOnClickListener(this);
+        storageReference = FirebaseStorage.getInstance().getReference();
+
+        databaseReferenceProductosXUsuario = FirebaseDatabase.getInstance().getReference("ProductosXUsuario");
+        databaseReferenceProductosXCategoria = FirebaseDatabase.getInstance().getReference("ProductosXCategoria");
+        databaseReferenceProductos = FirebaseDatabase.getInstance().getReference("Productos");
+
+        claveProducto = databaseReferenceProductos.push().getKey();
+
         return v;
     }
 
@@ -118,9 +143,7 @@ public class AltaProducto extends Fragment implements View.OnClickListener{
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.guardar:
-                DatabaseReference databaseReferenceProductos = FirebaseDatabase.getInstance().getReference("Productos");
-                DatabaseReference databaseReferenceProductosXUsuario = FirebaseDatabase.getInstance().getReference("ProductosXUsuario");
-                DatabaseReference databaseReferenceProductosXCategoria = FirebaseDatabase.getInstance().getReference("ProductosXCategoria");
+
 
                 String nombre = text_nombre.getText().toString();
                 String descripcion = text_descripcion.getText().toString();
@@ -134,7 +157,7 @@ public class AltaProducto extends Fragment implements View.OnClickListener{
                         !TextUtils.isEmpty(categoria) &&
                         !TextUtils.isEmpty(precio)) {
 
-                    String claveProducto = databaseReferenceProductos.push().getKey();
+
 
                     Producto p = new Producto(nombre, descripcion, categoria, precio, uid, usuario, claveProducto);
 
@@ -156,11 +179,30 @@ public class AltaProducto extends Fragment implements View.OnClickListener{
                     Toast.makeText(getContext(), "Debes introducir datos correctos", Toast.LENGTH_SHORT).show();
                 }
                 break;
+            case R.id.btGuardarImagen:
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent,GALLERY_INTENT);
+                break;
             default:
                 break;
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GALLERY_INTENT && resultCode == RESULT_OK){
+            Uri uri = data.getData();
+            final StorageReference filepath = storageReference.child(MainActivity.usuarioSesion.getUsuario()).child(claveProducto);
+            filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Toast.makeText(getContext(),"Imagen subida",Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
 
     /**
      * This interface must be implemented by activities that contain this

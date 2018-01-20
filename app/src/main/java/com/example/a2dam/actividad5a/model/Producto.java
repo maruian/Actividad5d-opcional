@@ -79,6 +79,7 @@ public class Producto implements Parcelable {
 
     public void setKey() { this.key = key; }
 
+
     protected Producto(Parcel in) {
         nombre = in.readString();
         descripcion = in.readString();
